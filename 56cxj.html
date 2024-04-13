@@ -1,0 +1,207 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Intro to MapView - Create a 2D map | Sample | ArcGIS Maps SDK for JavaScript 4.29</title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+      
+       header {
+            background-color:rgb(182, 182, 207);
+            color: black;
+            padding:0;
+            text-align: center;
+            width: 100%;
+            float: left;
+            margin: auto;
+        }
+        
+        /* 导航链接的样式 */
+        .nav-link {
+            color:black;
+            text-decoration: none;
+            padding: 0 15px;
+            font-size: 16px;
+            
+        }
+        
+        /* 导航链接悬停时的样式 */
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.29/"></script>
+
+    <script>
+      require(["esri/layers/FeatureLayer",
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/widgets/Legend",
+      "esri/widgets/ScaleBar",
+      "esri/widgets/Search",
+      "esri/widgets/LayerList",
+      "esri/widgets/BasemapGallery",
+      "esri/layers/GraphicsLayer",
+      "esri/widgets/Sketch",
+      "esri/widgets/AreaMeasurement2D",
+      "esri/widgets/DistanceMeasurement2D"
+      
+      ], (FeatureLayer,Map, MapView,Legend,ScaleBar,Search,LayerList,BasemapGallery,GraphicsLayer,Sketch,AreaMeasurement2D, DistanceMeasurement2D) => {
+        const layer = new FeatureLayer({
+  // URL to the service
+  url: "https://www.geosceneonline.cn/server/rest/services/Hosted/全国各省交通事故发生数总计/FeatureServer"
+});
+        const map = new Map({
+          basemap: "topo-vector"
+        });
+        
+        map.add(layer);
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          zoom: 4,
+          center: [95, 35] // longitude, latitude
+        });
+        
+let legend = new Legend({
+  view: view
+});
+
+view.ui.add(legend, "bottom-right");
+    
+  let scaleBar = new ScaleBar({
+  view: view
+});
+
+// Add widget to the bottom left corner of the view
+view.ui.add(scaleBar, {
+  position: "bottom-left"
+}); 
+
+  const searchWidget = new Search({
+  view: view
+});
+// Adds the search widget below other elements in
+// the top left corner of the view
+view.ui.add(searchWidget, {
+  position: "top-left",
+  index: 2
+});
+
+let layerList = new LayerList({
+  view: view
+});
+// Adds widget below other elements in the top left corner of the view
+view.ui.add(layerList, {
+  position: "top-right"
+});
+
+let basemapGallery = new BasemapGallery({
+  view: view
+});
+// Add widget to the top right corner of the view
+view.ui.add(basemapGallery, {
+  position: "top-left"
+});
+
+        //加入绘制功能
+        const graphicsLayer = new GraphicsLayer();
+        view.when(() => {
+        const sketch = new Sketch({
+        layer: graphicsLayer,
+        view: view,
+        creationMode: "update"
+        });
+        view.ui.add(sketch, "top-right");
+      });
+ view.ui.add("topbar", "top-right");
+
+// create the measurement widgets and hide them by default
+const distanceMeasurement2D = new DistanceMeasurement2D({
+  view,
+  visible: false
+});
+const areaMeasurement2D = new AreaMeasurement2D({
+  view,
+  visible: false
+});
+
+// event listener for distance measurements
+document.getElementById("distanceButton").addEventListener("click", function() {
+  setActiveWidget(null);
+  if (!this.classList.contains("active")) {
+    setActiveWidget("distance");
+  } else {
+    setActiveButton(null);
+  }
+});
+
+// event listener for area measurements
+document.getElementById("areaButton").addEventListener("click", function() {
+  setActiveWidget(null);
+  if (!this.classList.contains("active")) {
+    setActiveWidget("area");
+  } else {
+    setActiveButton(null);
+  }
+});
+
+function setActiveWidget(type) {
+  switch (type) {
+    case "distance":
+      areaMeasurement2D.visible = false;
+      distanceMeasurement2D.visible = true;
+      distanceMeasurement2D.viewModel.start();
+      setActiveButton(document.getElementById("distanceButton"));
+      break;
+    case "area":
+      distanceMeasurement2D.visible = false;
+      areaMeasurement2D.visible = true;
+      areaMeasurement2D.viewModel.start();
+      setActiveButton(document.getElementById("areaButton"));
+      break;
+    case null:
+      areaMeasurement2D.visible = false;
+      distanceMeasurement2D.visible = false;
+      break;
+  }
+}
+
+function setActiveButton(selectedButton) {
+  // focus the view to activate keyboard shortcuts for sketching
+  view.focus();
+  let elements = document.getElementsByClassName("active");
+  for (let i = 0; i < elements.length; i++) {
+    elements[i].classList.remove("active");
+  }
+  if (selectedButton) {
+    selectedButton.classList.add("active");
+  }
+}
+});
+      ;
+    </script>
+  </head>
+
+  <body>
+      <header>
+      <!-- 导航链接 -->
+      <a href="index.html" class="nav-link">主页</a>
+      <a href="about.html" class="nav-link">交通安全</a>
+      <a href="services.html" class="nav-link">查询服务</a>
+      <a href="contact.html" class="nav-link">联系我们</a>
+  </header>
+  
+    <div id="viewDiv"></div>
+  </body>
+</html>
